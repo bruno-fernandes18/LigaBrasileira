@@ -1,12 +1,20 @@
 import tkinter as tk
+from datetime import datetime
+
+from brasileirao.core.entidades.competicao import Competicao
+from brasileirao.core.entidades.time import Time
+from brasileirao.data.times_db import TimesDB
 
 HEADER_FONT = ("Helvetica", 18, "bold")
 LIST_FONT = ("Helvetica", 12)
 BUTTON_FONT = ("Helvetica", 14)
 
+
 class TabelaFrame(tk.Frame):
-    def __init__(self, master):
+    def __init__(self, master: tk.Misc, competicao: Competicao):
         super().__init__(master)
+        self.competicao = competicao
+        self.lista = None
         self.criar_widgets()
 
     def criar_widgets(self):
@@ -20,17 +28,24 @@ class TabelaFrame(tk.Frame):
         self.lista.config(yscrollcommand=sb.set)
         sb.config(command=self.lista.yview)
 
-        for i in range(1, 21):
-            self.lista.insert("end", f"{i:2d} - Time {i} - {i*3} pts")
+    def atualizar(self):
+        self.lista.delete(0, tk.END)
+        for i, time in enumerate(self.competicao.classificacao, 1):
+            self.lista.insert(tk.END, f"{i:2d} - {time.nome} - {time.pontos} pts")
+
 
 class RodadaFrame(tk.Frame):
-    def __init__(self, master, voltar_cb):
+    def __init__(self, master: tk.Misc, competicao: Competicao, rodada: int, concluir_cb):
         super().__init__(master)
-        self.voltar_cb = voltar_cb
+        self.competicao = competicao
+        self.rodada = rodada
+        self.concluir_cb = concluir_cb
+        self.lista = None
+        self.btn_sim = None
         self.criar_widgets()
 
     def criar_widgets(self):
-        tk.Label(self, text="Jogos do Dia", font=HEADER_FONT).pack(pady=5)
+        tk.Label(self, text=f"Rodada {self.rodada}", font=HEADER_FONT).pack(pady=5)
         frame = tk.Frame(self)
         frame.pack(fill="both", expand=True)
         sb = tk.Scrollbar(frame)
@@ -39,50 +54,65 @@ class RodadaFrame(tk.Frame):
         self.lista.pack(side="left", fill="both", expand=True)
         self.lista.config(yscrollcommand=sb.set)
         sb.config(command=self.lista.yview)
-
-        for i in range(1, 21):
-            self.lista.insert("end", f"Time A {i} x Time B {i} - 0 x 0")
+        self.atualizar_lista()
 
         btns = tk.Frame(self)
         btns.pack(pady=5)
-        tk.Button(btns, text="Simular", font=BUTTON_FONT, width=18).pack(side="left", padx=5)
-        tk.Button(btns, text="Pular para Resultado", font=BUTTON_FONT, width=18).pack(side="left", padx=5)
-        tk.Button(btns, text="Avançar", font=BUTTON_FONT, width=18, command=self.voltar_cb).pack(side="left", padx=5)
-        tk.Label(self, text="Classificação Série A").pack()
-        self.lista = tk.Listbox(self)
-        for i in range(1, 5):
-            self.lista.insert('end', f"Time {i} - {i*3} pts")
-        self.lista.pack(fill='both', expand=True)
+        self.btn_sim = tk.Button(btns, text="Simular", font=BUTTON_FONT, width=18, command=self.simular)
+        self.btn_sim.pack(side="left", padx=5)
+        tk.Button(btns, text="Avançar", font=BUTTON_FONT, width=18, command=self.finalizar).pack(side="left", padx=5)
 
-class RodadaFrame(tk.Frame):
-    def __init__(self, master):
-        super().__init__(master)
-        self.criar_widgets()
+    def atualizar_lista(self):
+        self.lista.delete(0, tk.END)
+        partidas = [p for p in self.competicao.partidas if p.rodada == self.rodada]
+        for p in partidas:
+            if p.concluida:
+                texto = f"{p.time_casa.nome} {p.placar_casa} x {p.placar_visitante} {p.time_visitante.nome}"
+            else:
+                texto = f"{p.time_casa.nome} x {p.time_visitante.nome} - {p.data.strftime('%d/%m')}"
+            self.lista.insert(tk.END, texto)
 
-    def criar_widgets(self):
-        tk.Label(self, text="Jogos do Dia").pack()
-        self.lista = tk.Listbox(self)
-        for i in range(1, 6):
-            self.lista.insert('end', f"Time A {i} x Time B {i} - 0x0")
-        self.lista.pack(fill='both', expand=True)
+    def simular(self):
+        self.competicao.simular_rodada(self.rodada)
+        self.btn_sim.config(state=tk.DISABLED)
+        self.atualizar_lista()
+        if hasattr(self.master, "tab_frame"):
+            self.master.tab_frame.atualizar()
+
+    def finalizar(self):
+        self.concluir_cb()
+
 
 class SimulacaoFrame(tk.Frame):
-    def __init__(self, master):
+    def __init__(self, master: tk.Misc):
         super().__init__(master)
-        self.tab_frame = TabelaFrame(self)
-        self.rodada_frame = RodadaFrame(self, self.mostrar_tabela)
+        self.competicao = Competicao("Brasileirão", datetime.now().year)
+        for nome in TimesDB.TIMES_BRASILEIRO_A:
+            self.competicao.adicionar_time(Time(nome, nome, 1900, "Cidade", f"Estádio {nome}"))
+        self.competicao.gerar_calendario()
+        self.competicao.atualizar_classificacao()
+
+        self.rodada_atual = 1
+        self.tab_frame = TabelaFrame(self, self.competicao)
+        self.rodada_frame = None
         self.btn_proxima = tk.Button(self, text="Próxima Rodada", font=BUTTON_FONT, width=18, command=self.mostrar_rodada)
         self.mostrar_tabela()
 
     def mostrar_tabela(self):
-        self.rodada_frame.pack_forget()
+        if self.rodada_frame:
+            self.rodada_frame.destroy()
+        self.tab_frame.atualizar()
         self.tab_frame.pack(fill="both", expand=True)
-        self.btn_proxima.pack(pady=5)
+        if self.rodada_atual <= len(self.competicao.partidas) // (len(self.competicao.times)//2):
+            self.btn_proxima.pack(pady=5)
 
     def mostrar_rodada(self):
         self.tab_frame.pack_forget()
         self.btn_proxima.pack_forget()
+        self.rodada_frame = RodadaFrame(self, self.competicao, self.rodada_atual, self.finalizar_rodada)
         self.rodada_frame.pack(fill="both", expand=True)
-        self.rodada_frame = RodadaFrame(self)
-        self.tab_frame.pack(side='left', fill='both', expand=True)
-        self.rodada_frame.pack(side='right', fill='both', expand=True)
+
+    def finalizar_rodada(self):
+        self.rodada_atual += 1
+        self.mostrar_tabela()
+
