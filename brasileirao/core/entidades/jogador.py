@@ -1,8 +1,14 @@
+"""Definição da entidade ``Jogador``."""
+
 from .pessoa import Pessoa
 from ..enums.posicao import Posicao
 
 class Jogador(Pessoa):
-    def __init__(self, nome: str, idade: int, nacionalidade: str, posicao: Posicao):
+    """Representa um atleta vinculado a um time."""
+
+    def __init__(self, nome: str, idade: int, nacionalidade: str, posicao: Posicao) -> None:
+        """Inicializa atributos do jogador."""
+
         super().__init__(nome, idade, nacionalidade)
         self.posicao = posicao
         self.qualidade_ataque = 0
@@ -19,7 +25,8 @@ class Jogador(Pessoa):
         self.time = None
         self.face_image = 'generic_0.png'
 
-    def calcular_qualidade_geral(self):
+    def calcular_qualidade_geral(self) -> None:
+        """Atualiza a avaliação de qualidade geral do jogador."""
         if self.posicao == Posicao.ATACANTE:
             self.qualidade_geral = int(0.7*self.qualidade_ataque + 0.2*self.qualidade_meio_campo + 0.1*self.qualidade_defesa)
         elif self.posicao == Posicao.MEIA:

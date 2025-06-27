@@ -1,19 +1,32 @@
 """Ponto de entrada da aplicação GUI."""
 
+import logging
+import importlib
 import tkinter as tk
 from importlib import metadata
+
+from tkinter import messagebox
 
 from brasileirao.gui import initializer
 
 
+logging.basicConfig(level=logging.INFO)
+
+
 def check_dependencies() -> None:
-    """Verifica a presença de dependências essenciais."""
+    """Verifica a presença de dependências essenciais.
+
+    Em caso de dependências ausentes, uma janela de alerta é exibida
+    para o usuário em vez de lançar ``ImportError``.
+    """
 
     required = {"PIL", "numpy", "pandas"}
-    installed = {dist.metadata["Name"] for dist in metadata.distributions()}
-    missing = required - installed
+    missing = {name for name in required if importlib.util.find_spec(name) is None}
     if missing:
-        raise ImportError(f"Faltam módulos: {', '.join(sorted(missing))}")
+        messagebox.showerror(
+            "Dependências ausentes",
+            f"Faltam módulos: {', '.join(sorted(missing))}",
+        )
 
 class MainWindow(tk.Tk):
     """Janela principal da aplicação."""

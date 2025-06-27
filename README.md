@@ -1,5 +1,7 @@
 # Liga Brasileira
 
+![CI](https://github.com/bruno-fernandes18/LigaBrasileira/actions/workflows/python-app.yml/badge.svg)
+
 Pequeno simulador do campeonato brasileiro.
 
 O aplicativo possui suporte opcional a efeitos sonoros via ``pygame`` e a
