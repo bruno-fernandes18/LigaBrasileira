@@ -43,6 +43,7 @@ class SimuladorPartida:
     # ------------------------------------------------------------------
     def simular(self) -> None:
         """Executa ate 20 fases alternando subfases."""
+        """Executa até 20 fases alternando meio-campo, ataque e finalizações."""
         narrar(
             f"Inicio da partida: {self.partida.time_casa.nome} x {self.partida.time_visitante.nome}",
             self.partida,
@@ -59,6 +60,18 @@ class SimuladorPartida:
             if self.phase >= MAX_PHASES:
                 break
             self._defesa(chute)
+        limite = calcula_numero_de_fases()
+        while self.phase < limite:
+            rolar_meio_campo(self)
+            if self.phase >= limite:
+                break
+            if rolar_ataque(self):
+                if self.phase >= limite:
+                    break
+                chute = chutar_gol(self)
+                if self.phase >= limite:
+                    break
+                defesa_goleiro(self, chute)
         self.partida.concluida = True
 
     # ------------------------------------------------------------------
@@ -131,5 +144,32 @@ class SimuladorPartida:
                 _registrar_gol(self.partida.time_visitante)
         else:
             self.possession = defensor
+            else:
+                self.partida.placar_visitante += 1
+            time = self.possession
+            if time.jogadores:
+                marcador = random.choice(time.jogadores)
+                registrar_gol(marcador)
+                assist = None
+                if len(time.jogadores) > 1:
+                    candidatos = [j for j in time.jogadores if j is not marcador]
+                    if candidatos:
+                        assist = random.choice(candidatos)
+                registrar_gol(marcador, assist)
+            narrar(f"GOL do {time.nome}!", self.partida)
+        else:
+            self.possession = (
+                self.partida.time_visitante
+                if self.possession == self.partida.time_casa
+                else self.partida.time_casa
+            )
+        self._verificar_cartoes()
 
+    def _verificar_cartoes(self) -> None:
+        """Sorteia aplicação de cartões aleatoriamente."""
+        chance = random.random()
+        if chance < 0.02:
+            narrar(f"Cartão amarelo para {self.possession.nome}", self.partida)
+        elif chance < 0.025:
+            narrar(f"Cartão vermelho para {self.possession.nome}", self.partida)
 
