@@ -2,9 +2,15 @@
 
 from .competicao import Competicao
 from .partida import Partida
+from .jogador import Jogador
 
 class Liga(Competicao):
     """Liga em formato de pontos corridos."""
+
+    def __init__(self, nome: str, temporada: int, dependente_de: Competicao | None = None) -> None:
+        super().__init__(nome, temporada, dependente_de)
+        self.artilharia: dict[Jogador, int] = {}
+        self.assistencias: dict[Jogador, int] = {}
 
     def gerar_calendario(self) -> None:
         for time in self.times:
@@ -13,19 +19,8 @@ class Liga(Competicao):
         self.classificacao = self.times[:]
 
     def _aplicar_resultado(self, partida: Partida) -> None:
-        """Atualiza pontuação e saldo de gols dos times."""
-        casa = partida.time_casa
-        visitante = partida.time_visitante
-        casa.saldo_gols += partida.placar_casa - partida.placar_visitante
-        visitante.saldo_gols += partida.placar_visitante - partida.placar_casa
-
-        if partida.placar_casa > partida.placar_visitante:
-            casa.pontos += 3
-        elif partida.placar_casa < partida.placar_visitante:
-            visitante.pontos += 3
-        else:
-            casa.pontos += 1
-            visitante.pontos += 1
+        """Atualiza pontuação e saldo de gols usando a partida."""
+        partida.aplicar_resultado()
 
     def simular_rodada(self, rodada: int) -> None:
         """Simula as partidas de uma rodada e atualiza a classificação."""
