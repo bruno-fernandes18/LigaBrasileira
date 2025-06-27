@@ -2,4 +2,5 @@
 name = "LigaBrasileira"
 version = "0.1.0"
 authors = ["Seu Nome <email>"]
+dependencies = ["tkinter", "pytest", "pytest-cov", "flake8"]
 dependencies = ["pytest", "flake8"]
