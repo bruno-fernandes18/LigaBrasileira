@@ -1,7 +1,6 @@
+![Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen)
 # Liga Brasileira
-
 ![Build](https://github.com/example/LigaBrasileira/actions/workflows/ci.yml/badge.svg)
-![Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen.svg)
 
 Simulador simples de competições do futebol brasileiro.
 
