@@ -103,28 +103,23 @@ class SimuladorPartida:
         self.modifier_visitante = 1.0
 
     def simular(self) -> None:
-        """Executa fases limitadas em meio-campo, ataque e gol."""
+        """Executa até 20 fases alternando meio-campo, ataque e finalizações."""
         narrar(
             f"Inicio da partida: {self.partida.time_casa.nome} x {self.partida.time_visitante.nome}",
             self.partida,
         )
-        while self.phase < 20:
-            self._meio_campo()
-            if self.phase >= 20:
-        """Executa até 20 fases alternando meio-campo, ataque e finalizações."""
         limite = calcula_numero_de_fases()
         while self.phase < limite:
             rolar_meio_campo(self)
             if self.phase >= limite:
                 break
-            if not rolar_ataque(self):
-                continue
-            if self.phase >= limite:
-                break
-            chute = chutar_gol(self)
-            if self.phase >= limite:
-                break
-            defesa_goleiro(self, chute)
+            if rolar_ataque(self):
+                if self.phase >= limite:
+                    break
+                chute = chutar_gol(self)
+                if self.phase >= limite:
+                    break
+                defesa_goleiro(self, chute)
         self.partida.concluida = True
 
     def _meio_campo(self) -> None:
@@ -169,14 +164,9 @@ class SimuladorPartida:
         if chute > defesa:
             if self.possession == self.partida.time_casa:
                 self.partida.placar_casa += 1
-                narrar(f"GOL do {self.partida.time_casa.nome}!", self.partida)
             else:
                 self.partida.placar_visitante += 1
-                narrar(f"GOL do {self.partida.time_visitante.nome}!", self.partida)
-                time = self.partida.time_casa
-            else:
-                self.partida.placar_visitante += 1
-                time = self.partida.time_visitante
+            time = self.possession
             if time.jogadores:
                 marcador = random.choice(time.jogadores)
                 assist = None
@@ -185,6 +175,7 @@ class SimuladorPartida:
                     if candidatos:
                         assist = random.choice(candidatos)
                 registrar_gol(marcador, assist)
+            narrar(f"GOL do {time.nome}!", self.partida)
         else:
             self.possession = (
                 self.partida.time_visitante
@@ -201,3 +192,4 @@ class SimuladorPartida:
             narrar(f"Cartão amarelo para {self.possession.nome}", self.partida)
         elif chance < 0.025:
             narrar(f"Cartão vermelho para {self.possession.nome}", self.partida)
+
