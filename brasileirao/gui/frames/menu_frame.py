@@ -32,24 +32,9 @@ class MenuFrame(tk.Frame):
         ).pack(side="bottom", anchor="e", padx=10, pady=10)
 
     def iniciar(self):
-        """Switch to the simulation frame and destroy this menu."""
-        self.destroy()
-        SimulacaoFrame(self.master).pack(fill="both", expand=True)
-        tk.Label(self, text="Liga Brasileira", font=("Arial", 20)).pack(pady=10)
-        btn_sim = tk.Button(self, text="Iniciar Simulação", command=self.iniciar)
-        btn_manager = tk.Button(self, text="Jogar com Técnico")
-        btn_cfg = tk.Button(self, text="Configurações")
-        btn_sair = tk.Button(self, text="Sair", command=self.master.quit)
-        btn_login = tk.Button(self, text="Login/Registro", command=self.mostrar_login)
-        btn_sim.pack(pady=2)
-        btn_manager.pack(pady=2)
-        btn_cfg.pack(pady=2)
-        btn_sair.pack(pady=2)
-        btn_login.pack(side="bottom", anchor="se")
-
-    def iniciar(self):
+        """Mostrar o frame de simulação e ocultar o menu."""
         self.pack_forget()
-        SimulacaoFrame(self.master).pack(fill='both', expand=True)
+        SimulacaoFrame(self.master).pack(fill="both", expand=True)
 
     def mostrar_login(self):
         popup = tk.Toplevel(self)

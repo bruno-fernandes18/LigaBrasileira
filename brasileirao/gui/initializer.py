@@ -27,6 +27,3 @@ def start(root: tk.Tk):
     root.minsize(1280, 720)
     root.bind("<Configure>", _enforce_ratio)
     MenuFrame(root).pack(fill="both", expand=True)
-def start(root: tk.Tk):
-    root.title("Liga Brasileira")
-    MenuFrame(root).pack(fill='both', expand=True)
