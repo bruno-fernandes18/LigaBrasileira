@@ -17,6 +17,9 @@ class Liga(Competicao):
             time.liga = self
         super().gerar_calendario()
         self.classificacao = self.times[:]
+        self.calendario.verificar_temporada(self.temporada)
+        self.calendario.verificar_espacamento_times(self.times)
+        self.calendario.verificar_distribuicao_mensal()
 
     def _aplicar_resultado(self, partida: Partida) -> None:
         """Atualiza pontuação e saldo de gols usando a partida."""

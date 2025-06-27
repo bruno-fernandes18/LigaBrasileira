@@ -113,14 +113,13 @@ class SimuladorPartida:
             rolar_meio_campo(self)
             if self.phase >= limite:
                 break
-            if not rolar_ataque(self):
-                continue
-            if self.phase >= limite:
-                break
-            chute = chutar_gol(self)
-            if self.phase >= limite:
-                break
-            defesa_goleiro(self, chute)
+            if rolar_ataque(self):
+                if self.phase >= limite:
+                    break
+                chute = chutar_gol(self)
+                if self.phase >= limite:
+                    break
+                defesa_goleiro(self, chute)
         self.partida.concluida = True
 
     def _meio_campo(self) -> None:
@@ -171,6 +170,13 @@ class SimuladorPartida:
             if time.jogadores:
                 marcador = random.choice(time.jogadores)
                 registrar_gol(marcador)
+                assist = None
+                if len(time.jogadores) > 1:
+                    candidatos = [j for j in time.jogadores if j is not marcador]
+                    if candidatos:
+                        assist = random.choice(candidatos)
+                registrar_gol(marcador, assist)
+            narrar(f"GOL do {time.nome}!", self.partida)
         else:
             self.possession = (
                 self.partida.time_visitante
@@ -186,3 +192,4 @@ class SimuladorPartida:
             narrar(f"Cartão amarelo para {self.possession.nome}", self.partida)
         elif chance < 0.025:
             narrar(f"Cartão vermelho para {self.possession.nome}", self.partida)
+
