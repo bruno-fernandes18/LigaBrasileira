@@ -1,13 +1,9 @@
 import tkinter as tk
-from ..widgets import TecnicosPopup
-from brasileirao.data.times_db import TimesDB
-from brasileirao.core.entidades.time import Time
-from brasileirao.core.entidades.tecnico import Tecnico
-from brasileirao.core.enums.estilo_tatico import EstiloTatico
 from datetime import datetime
+
+from ..widgets import TecnicosPopup
 from brasileirao.core.entidades.competicao import Competicao
-from brasileirao.core.entidades.time import Time
-from brasileirao.data.times_db import TimesDB
+from ..controller import AppController
 
 HEADER_FONT = ("Helvetica", 18, "bold")
 LIST_FONT = ("Helvetica", 12)
@@ -114,26 +110,13 @@ class RodadaFrame(tk.Frame):
 class SimulacaoFrame(tk.Frame):
     """Frame principal da simulação."""
 
-    def __init__(
-        self,
-        parent: tk.Misc,
-        competicao: Competicao | None = None,
-        temporada: int | None = None,
-        partidas=None,
-    ):
+    def __init__(self, parent: tk.Misc, controller: AppController):
         super().__init__(parent)
 
-        if competicao is None:
-            temporada = temporada or datetime.now().year
-            competicao = Competicao("Brasileirão", temporada)
-            for nome in TimesDB.TIMES_BRASILEIRO_A:
-                competicao.adicionar_time(
-                    Time(nome, nome, 1900, "Cidade", f"Estádio {nome}")
-                )
-            competicao.gerar_calendario()
-            competicao.atualizar_classificacao()
+        self.controller = controller
+        self.competicao = controller.campeonato
+        partidas = None
 
-        self.competicao = competicao
         self.rodada_atual = 1
         self.partidas = partidas or []
 
@@ -150,23 +133,10 @@ class SimulacaoFrame(tk.Frame):
 
         self.mostrar_tabela()
 
-    def _criar_times(self):
-        """Cria instâncias fictícias de times e técnicos."""
-
-        times = []
-        for nome in TimesDB.TIMES_BRASILEIRO_A:
-            time = Time(nome, nome, 1900, "Cidade", "Estadio")
-            tecnico = Tecnico(f"Técnico {nome}", 50, "Brasil")
-            tecnico.estilo_tatico = EstiloTatico.BALANCEADO
-            tecnico.time = time
-            time.tecnico = tecnico
-            times.append(time)
-        return times
-
     def mostrar_tecnicos(self):
         """Exibe lista de técnicos em um popup."""
 
-        TecnicosPopup(self, self.times)
+        TecnicosPopup(self, self.competicao.times)
 
     def mostrar_tabela(self):
         """Exibe a tabela de classificação."""

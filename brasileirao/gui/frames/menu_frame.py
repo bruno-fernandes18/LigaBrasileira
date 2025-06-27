@@ -1,10 +1,8 @@
 """Frame inicial do aplicativo."""
 
 import tkinter as tk
-from datetime import datetime
-
 from .simulacao_frame import SimulacaoFrame
-from brasileirao.core.entidades.competicao import Competicao
+from ..controller import AppController
 
 
 HEADER_FONT = ("Helvetica", 24, "bold")
@@ -13,9 +11,10 @@ BUTTON_FONT = ("Helvetica", 14)
 class MenuFrame(tk.Frame):
     """Menu principal exibido ao iniciar a aplicação."""
 
-    def __init__(self, master: tk.Misc):
+    def __init__(self, master: tk.Misc, controller: AppController):
         super().__init__(master)
-        self.competicao = Competicao("Brasileirão", datetime.now().year)
+        self.controller = controller
+        self.competicao = controller.campeonato
         self.criar_widgets()
 
     def criar_widgets(self):
@@ -45,8 +44,7 @@ class MenuFrame(tk.Frame):
         self.pack_forget()
         SimulacaoFrame(
             parent=self.master,
-            competicao=self.competicao,
-            temporada=self.competicao.temporada,
+            controller=self.controller,
         ).pack(fill="both", expand=True)
 
     def mostrar_login(self):
