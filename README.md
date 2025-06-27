@@ -11,6 +11,9 @@ Simulador simples de competições do futebol brasileiro.
 pip install -r requirements.txt
 ```
 
+Certifique-se de que a biblioteca padrão **Tkinter** do Python esteja
+disponível no seu ambiente, pois ela é necessária para a interface gráfica.
+
 ## Uso
 
 ```bash
