@@ -29,3 +29,6 @@ class Copa(Competicao):
                 nova_rodada.append(partida)
             times = [p.time_casa for p in nova_rodada]
             rodada += 1
+        self.calendario.verificar_temporada(self.temporada)
+        self.calendario.verificar_espacamento_times(self.times)
+        self.calendario.verificar_distribuicao_mensal()
