@@ -1,23 +1,5 @@
 [project]
-name = "liga_brasileira"
+name = "LigaBrasileira"
 version = "0.1.0"
-authors = [
-    { name = "Projeto Liga" }
-]
-description = "Simulador de competições do futebol brasileiro"
-readme = "README.md"
-license = {text = "MIT"}
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-]
-requires-python = ">=3.8"
-dependencies = [
-    "Pillow",
-    "numpy",
-    "pandas",
-]
-
-[build-system]
-requires = ["setuptools>=64", "wheel"]
-build-backend = "setuptools.build_meta"
+authors = ["Seu Nome <email>"]
+dependencies = ["tkinter", "pytest", "flake8"]

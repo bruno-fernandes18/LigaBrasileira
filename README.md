@@ -1,39 +1,24 @@
 # Liga Brasileira
 
-![CI](https://github.com/bruno-fernandes18/LigaBrasileira/actions/workflows/python-app.yml/badge.svg)
-[![Coverage Status](https://img.shields.io/badge/coverage-90%25-brightgreen.svg)](https://example.com)
+![Build](https://github.com/example/LigaBrasileira/actions/workflows/ci.yml/badge.svg)
+![Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen.svg)
 
-Pequeno simulador do campeonato brasileiro.
+Simulador simples de competições do futebol brasileiro.
 
-O aplicativo possui suporte opcional a efeitos sonoros via ``pygame`` e a
-interface mantém proporção 16:9 de forma *DPI-aware*, evitando distorções em
-monitores de alta densidade.
-
-Abra `app.py` para iniciar a interface em Tkinter. A janela tem tamanho
-mínimo de 1280x720 e mantém proporção 16:9 ao redimensionar. O menu
-principal permite iniciar uma simulação simples.
-
-## REGRAS DE OURO BARROSAS:
-1. 🚫 Nada de nomes pessoais
-2. 🔒 Segurança primeiro
-3. 🧪 Testes cobrem 90% do core
-4. 📊 Documentação NASA-level
-
-## Como instalar
+## Instalação
 
 ```bash
-pip install .
+pip install -r requirements.txt
 ```
 
-## Como rodar
+## Uso
 
 ```bash
-python -m app
+python app.py
 ```
 
-## Como testar
+## Testes
 
 ```bash
-pytest
-coverage run -m pytest && coverage html
+pytest --cov=core
 ```
