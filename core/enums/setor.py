@@ -2,7 +2,7 @@ from enum import Enum
 from .posicao import Posicao
 
 class Setor(Enum):
-    """Setores do campo."""
+    """Divisões básicas do gramado."""
     DEFESA = 1
     MEIO_CAMPO = 2
     ATAQUE = 3
