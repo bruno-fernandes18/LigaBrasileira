@@ -1,6 +1,7 @@
 from datetime import datetime
 from .time import Time
 from ..enums.fase_partida import FasePartida
+from ..sistemas.sound_manager import SoundManager
 
 class Partida:
     def __init__(self, time_casa: Time, time_visitante: Time, rodada: int, data: datetime):
@@ -30,3 +31,4 @@ class Partida:
         else:
             self.time_casa.pontos += 1
             self.time_visitante.pontos += 1
+        SoundManager.play("apito_final")
