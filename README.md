@@ -17,3 +17,21 @@ principal permite iniciar uma simulação simples.
 2. 🔒 Segurança primeiro
 3. 🧪 Testes cobrem 90% do core
 4. 📊 Documentação NASA-level
+
+## Como instalar
+
+```bash
+pip install .
+```
+
+## Como rodar
+
+```bash
+python -m app
+```
+
+## Como testar
+
+```bash
+pytest
+```
