@@ -1,7 +1,7 @@
 from enum import Enum
 
 class Posicao(Enum):
-    """Posições de jogadores em campo."""
+    """Enumeração das posições clássicas do futebol."""
     GOLEIRO = 1
     LATERAL = 2
     ZAGUEIRO = 3

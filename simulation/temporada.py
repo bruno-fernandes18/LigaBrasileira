@@ -1,4 +1,9 @@
-"""Simulação básica de uma temporada."""
+"""Ferramentas para simular uma temporada completa.
+
+Este módulo provê a classe :class:`SimuladorTemporada`, responsável por
+executar rodadas de todas as competições cadastradas e aplicar eventos
+de mercado e de jogo a cada semana.
+"""
 
 from __future__ import annotations
 
@@ -19,9 +24,19 @@ from core.systems.sistema_regens import regenerar_jogadores
 
 
 class SimuladorTemporada:
-    """Executa rodadas e gerencia eventos sazonais."""
+    """Executa rodadas e gerencia eventos sazonais.
+
+    Args:
+        competicoes (List[Competicao]): Lista de competições que farão
+            parte da temporada.
+    """
 
     def __init__(self, competicoes: List[Competicao]) -> None:
+        """Inicializa o simulador.
+
+        Args:
+            competicoes: Competições que serão simuladas.
+        """
         self.competicoes = competicoes
         self.rodada_atual = 1
         self.times: List[Time] = []
@@ -31,7 +46,12 @@ class SimuladorTemporada:
                     self.times.append(t)
 
     def executar_rodada(self) -> None:
-        """Simula a rodada atual em todas as competições."""
+        """Simula a rodada atual.
+
+        Executa as partidas de cada competição e em seguida aplica os
+        sistemas de eventos e finanças. Ao final a rodada é
+        incrementada.
+        """
         for comp in self.competicoes:
             comp.simular_rodada(self.rodada_atual)
             if isinstance(comp, Liga):
@@ -47,7 +67,11 @@ class SimuladorTemporada:
         self.rodada_atual += 1
 
     def _mercado_transferencias(self) -> None:
-        """Realiza transferências simples entre times."""
+        """Realiza transferências simples entre times.
+
+        Este método cria negociações básicas para manter os elencos
+        equilibrados ao longo da temporada.
+        """
         for comprador in self.times:
             if comprador.orcamento <= 0:
                 continue
@@ -70,5 +94,22 @@ class SimuladorTemporada:
                     novo.time = comprador
                     comprador.jogadores.append(novo)
                     comprador.orcamento -= 1_000_000
-                break
 
+
+def main() -> None:
+    """Executa uma simulação simples via linha de comando."""
+    liga = Liga("Demo", 2023)
+    liga.times = [
+        Time("Time A", "A", 1900, "Cidade A", "Estádio A"),
+        Time("Time B", "B", 1900, "Cidade B", "Estádio B"),
+    ]
+    for t in liga.times:
+        t.liga = liga
+    liga.gerar_calendario()
+    sim = SimuladorTemporada([liga])
+    sim.executar_rodada()
+    print(f"Placar: {liga.partidas[0].placar_casa}x{liga.partidas[0].placar_visitante}")
+
+
+if __name__ == "__main__":
+    main()
