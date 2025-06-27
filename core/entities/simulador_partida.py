@@ -169,6 +169,7 @@ class SimuladorPartida:
             time = self.possession
             if time.jogadores:
                 marcador = random.choice(time.jogadores)
+                registrar_gol(marcador)
                 assist = None
                 if len(time.jogadores) > 1:
                     candidatos = [j for j in time.jogadores if j is not marcador]
@@ -182,7 +183,6 @@ class SimuladorPartida:
                 if self.possession == self.partida.time_casa
                 else self.partida.time_casa
             )
-            narrar("A bola n\u00e3o entrou", self.partida)
         self._verificar_cartoes()
 
     def _verificar_cartoes(self) -> None:

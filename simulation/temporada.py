@@ -19,7 +19,10 @@ from core.systems.sistema_eventos import (
     verificar_demissao_tecnicos,
     verificar_lesoes,
 )
-from core.systems.sistema_financeiro import pagar_salarios_semanais
+from core.systems.sistema_financeiro import (
+    pagar_salarios_semanais,
+    resolver_bancarrota,
+)
 from core.systems.sistema_regens import regenerar_jogadores
 
 
@@ -61,6 +64,11 @@ class SimuladorTemporada:
         verificar_lesoes(jogadores)
         verificar_demissao_tecnicos(self.times)
         pagar_salarios_semanais(self.times)
+        for t in self.times:
+            if t.bancarrota:
+                outros = [o for o in self.times if o is not t]
+                resolver_bancarrota(t, outros)
+
         regenerar_jogadores(jogadores)
         self._mercado_transferencias()
 
