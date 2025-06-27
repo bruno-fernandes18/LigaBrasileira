@@ -1,5 +1,6 @@
 """Entidade Copa."""
 
+from datetime import timedelta
 from .competicao import Competicao
 from .partida import Partida
 
@@ -17,7 +18,12 @@ class Copa(Competicao):
             for i in range(0, len(times), 2):
                 casa = times[i]
                 visitante = times[i + 1]
-                partida = Partida(casa, visitante, rodada, self.calendario.proxima_data_disponivel(self.calendario.partidas[-1].data if self.calendario.partidas else self.calendario.data_inicio))
+                data_base = (
+                    self.calendario.partidas[-1].data + timedelta(days=3)
+                    if self.calendario.partidas
+                    else self.calendario.data_inicio
+                )
+                partida = Partida(casa, visitante, rodada, data_base)
                 self.calendario.adicionar_partida(partida)
                 self.partidas.append(partida)
                 nova_rodada.append(partida)

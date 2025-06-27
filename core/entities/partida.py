@@ -22,3 +22,4 @@ class Partida:
         """Simula a partida utilizando o simulador."""
         from .simulador_partida import SimuladorPartida
         SimuladorPartida(self).simular()
+        self.concluida = True
