@@ -23,6 +23,10 @@ def aplicar_punicao(time: Time, gravidade: int):
 class SportsIntegrityAgency:
     """Agência simplificada para investigações de integridade esportiva."""
 
+    STEP_1 = "Coleta de provas digitais"
+    STEP_5 = "Análise de padrões de aposta"
+    STEP_10 = "Aplicação de sanções em cadeia"
+
     def __init__(self) -> None:
         self.active_investigations = []
         self.sanctions_database = SanctionRegistry()

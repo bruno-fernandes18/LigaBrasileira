@@ -1,4 +1,9 @@
+import os
+import sys
 import types
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from brasileirao.gui.initializer import _enforce_ratio
 
 class FakeWidget:

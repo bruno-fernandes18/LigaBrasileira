@@ -1,5 +1,10 @@
+import os
+import sys
 import unittest
 from datetime import datetime
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from brasileirao.core.entidades.time import Time
 from brasileirao.core.entidades.partida import Partida
 
