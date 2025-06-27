@@ -103,15 +103,11 @@ class SimuladorPartida:
         self.modifier_visitante = 1.0
 
     def simular(self) -> None:
-        """Executa fases limitadas em meio-campo, ataque e gol."""
+        """Executa até 20 fases alternando meio-campo, ataque e finalizações."""
         narrar(
             f"Inicio da partida: {self.partida.time_casa.nome} x {self.partida.time_visitante.nome}",
             self.partida,
         )
-        while self.phase < 20:
-            self._meio_campo()
-            if self.phase >= 20:
-        """Executa até 20 fases alternando meio-campo, ataque e finalizações."""
         limite = calcula_numero_de_fases()
         while self.phase < limite:
             rolar_meio_campo(self)
@@ -169,29 +165,18 @@ class SimuladorPartida:
         if chute > defesa:
             if self.possession == self.partida.time_casa:
                 self.partida.placar_casa += 1
-                narrar(f"GOL do {self.partida.time_casa.nome}!", self.partida)
             else:
                 self.partida.placar_visitante += 1
-                narrar(f"GOL do {self.partida.time_visitante.nome}!", self.partida)
-                time = self.partida.time_casa
-            else:
-                self.partida.placar_visitante += 1
-                time = self.partida.time_visitante
+            time = self.possession
             if time.jogadores:
                 marcador = random.choice(time.jogadores)
-                assist = None
-                if len(time.jogadores) > 1:
-                    candidatos = [j for j in time.jogadores if j is not marcador]
-                    if candidatos:
-                        assist = random.choice(candidatos)
-                registrar_gol(marcador, assist)
+                registrar_gol(marcador)
         else:
             self.possession = (
                 self.partida.time_visitante
                 if self.possession == self.partida.time_casa
                 else self.partida.time_casa
             )
-            narrar("A bola n\u00e3o entrou", self.partida)
         self._verificar_cartoes()
 
     def _verificar_cartoes(self) -> None:
