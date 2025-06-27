@@ -9,4 +9,6 @@ class ManagerFrame(tk.Frame):
     def __init__(self, master: tk.Misc, manager) -> None:
         super().__init__(master)
         self.manager = manager
-        ClassificacaoWidget(self, manager.time.liga.classificacao).pack()
+        liga = getattr(manager.time, "liga", None)
+        classificacao = liga.classificacao if liga else []
+        ClassificacaoWidget(self, classificacao).pack()

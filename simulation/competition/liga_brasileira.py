@@ -8,6 +8,8 @@ class LigaBrasileira(Liga):
     """Liga nacional com calendário semanal."""
 
     def gerar_calendario(self) -> None:
+        for time in self.times:
+            time.liga = self
         self.calendario = Calendario()
         data = date(self.temporada, 1, 1)
         self.partidas.clear()
@@ -20,6 +22,7 @@ class LigaBrasileira(Liga):
                 partida_volta = self._criar_partida(visitante, casa, rodada, data)
                 rodada += 1
                 data = self.calendario.proxima_data_disponivel(data)
+        self.classificacao = self.times[:]
 
     def _criar_partida(self, casa, visitante, rodada, data):
         from ...core.entities.partida import Partida
