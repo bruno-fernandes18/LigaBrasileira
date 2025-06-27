@@ -38,8 +38,16 @@ class TabelaFrame(tk.Frame):
         """Atualiza a tabela com a classificação atual."""
 
         self.lista.delete(0, tk.END)
+        if not hasattr(self.competicao, "classificacao"):
+            raise AttributeError("Competição mal formatada")
+        if not self.competicao.classificacao:
+            self._mostrar_mensagem_vazio()
+            return
         for i, time in enumerate(self.competicao.classificacao, 1):
             self.lista.insert(tk.END, f"{i:2d} - {time.nome} - {time.pontos} pts")
+
+    def _mostrar_mensagem_vazio(self):
+        self.lista.insert(tk.END, "Sem dados de classificação")
 
 
 class RodadaFrame(tk.Frame):
@@ -167,6 +175,5 @@ class SimulacaoFrame(tk.Frame):
 
         self.rodada_atual += 1
         self.mostrar_tabela()
-        self.rodada_frame.atualizar_partidas(self.partidas)
         self.rodada_frame.pack(fill="both", expand=True)
 
