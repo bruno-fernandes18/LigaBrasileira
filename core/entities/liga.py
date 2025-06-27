@@ -2,9 +2,15 @@
 
 from .competicao import Competicao
 from .partida import Partida
+from .jogador import Jogador
 
 class Liga(Competicao):
     """Liga em formato de pontos corridos."""
+
+    def __init__(self, nome: str, temporada: int, dependente_de: Competicao | None = None) -> None:
+        super().__init__(nome, temporada, dependente_de)
+        self.artilharia: dict[Jogador, int] = {}
+        self.assistencias: dict[Jogador, int] = {}
 
     def gerar_calendario(self) -> None:
         for time in self.times:

@@ -3,6 +3,7 @@
 import random
 from .partida import Partida
 from ..enums.fase_partida import FasePartida
+from ..systems.sistema_eventos import registrar_gol
 
 class SimuladorPartida:
     """Executa uma simulação simplificada de partida."""
@@ -64,8 +65,18 @@ class SimuladorPartida:
         if chute > defesa:
             if self.possession == self.partida.time_casa:
                 self.partida.placar_casa += 1
+                time = self.partida.time_casa
             else:
                 self.partida.placar_visitante += 1
+                time = self.partida.time_visitante
+            if time.jogadores:
+                marcador = random.choice(time.jogadores)
+                assist = None
+                if len(time.jogadores) > 1:
+                    candidatos = [j for j in time.jogadores if j is not marcador]
+                    if candidatos:
+                        assist = random.choice(candidatos)
+                registrar_gol(marcador, assist)
         else:
             self.possession = (
                 self.partida.time_visitante
