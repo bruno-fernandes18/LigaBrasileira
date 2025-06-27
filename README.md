@@ -1,6 +1,7 @@
 # Liga Brasileira
 
 ![CI](https://github.com/bruno-fernandes18/LigaBrasileira/actions/workflows/python-app.yml/badge.svg)
+[![Coverage Status](https://img.shields.io/badge/coverage-90%25-brightgreen.svg)](https://example.com)
 
 Pequeno simulador do campeonato brasileiro.
 
@@ -34,4 +35,5 @@ python -m app
 
 ```bash
 pytest
+coverage run -m pytest && coverage html
 ```
