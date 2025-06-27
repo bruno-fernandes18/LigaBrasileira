@@ -1,6 +1,10 @@
 import tkinter as tk
+from ..widgets import TecnicosPopup
+from brasileirao.data.times_db import TimesDB
+from brasileirao.core.entidades.time import Time
+from brasileirao.core.entidades.tecnico import Tecnico
+from brasileirao.core.enums.estilo_tatico import EstiloTatico
 from datetime import datetime
-
 from brasileirao.core.entidades.competicao import Competicao
 from brasileirao.core.entidades.time import Time
 from brasileirao.data.times_db import TimesDB
@@ -66,6 +70,9 @@ class RodadaFrame(tk.Frame):
         self.atualizar_lista()
         btns = tk.Frame(self)
         btns.pack(pady=5)
+        tk.Button(btns, text="Simular", font=BUTTON_FONT, width=18).pack(side="left", padx=5)
+        tk.Button(btns, text="Pular para Resultado", font=BUTTON_FONT, width=18).pack(side="left", padx=5)
+        tk.Button(btns, text="Avançar", font=BUTTON_FONT, width=18, command=self.voltar_cb).pack(side="left", padx=5)
         self.btn_sim = tk.Button(btns, text="Simular", font=BUTTON_FONT, width=18, command=self.simular)
         self.btn_sim.pack(side="left", padx=5)
         tk.Button(btns, text="Avançar", font=BUTTON_FONT, width=18, command=self.finalizar).pack(side="left", padx=5)
@@ -149,6 +156,11 @@ class SimulacaoFrame(tk.Frame):
 
     def __init__(self, master, partidas=None):
         super().__init__(master)
+        self.times = self._criar_times()
+        self.tab_frame = TabelaFrame(self)
+        self.rodada_frame = RodadaFrame(self, self.mostrar_tabela)
+        self.btn_proxima = tk.Button(self, text="Próxima Rodada", font=BUTTON_FONT, width=18, command=self.mostrar_rodada)
+        self.btn_tecnicos = tk.Button(self, text="Ver Técnicos", font=BUTTON_FONT, width=18, command=self.mostrar_tecnicos)
         self.partidas = partidas or []
         self.tab_frame = TabelaFrame(self)
         self.rodada_frame = RodadaFrame(
@@ -163,10 +175,26 @@ class SimulacaoFrame(tk.Frame):
         )
         self.mostrar_tabela()
 
+    def _criar_times(self):
+        times = []
+        for nome in TimesDB.TIMES_BRASILEIRO_A:
+            time = Time(nome, nome, 1900, "Cidade", "Estadio")
+            tecnico = Tecnico(f"Técnico {nome}", 50, "Brasil")
+            tecnico.estilo_tatico = EstiloTatico.BALANCEADO
+            tecnico.time = time
+            time.tecnico = tecnico
+            times.append(time)
+        return times
+
+    def mostrar_tecnicos(self):
+        TecnicosPopup(self, self.times)
+
     def mostrar_tabela(self):
         """Exibe a tabela de classificação."""
         self.rodada_frame.pack_forget()
         self.tab_frame.pack(fill="both", expand=True)
+        self.btn_proxima.pack(pady=5)
+        self.btn_tecnicos.pack(pady=5)
         if self.rodada_atual <= len(self.competicao.partidas) // (len(self.competicao.times)//2):
             self.btn_proxima.pack(pady=5)
 
@@ -174,6 +202,8 @@ class SimulacaoFrame(tk.Frame):
         """Mostra as partidas da rodada atual sem recriar widgets."""
         self.tab_frame.pack_forget()
         self.btn_proxima.pack_forget()
+        self.btn_tecnicos.pack_forget()
+        self.rodada_frame.pack(fill="both", expand=True)
         self.rodada_frame = RodadaFrame(self, self.competicao, self.rodada_atual, self.finalizar_rodada)
         self.rodada_frame.pack(fill="both", expand=True)
 
