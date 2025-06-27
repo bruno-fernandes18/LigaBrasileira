@@ -1,7 +1,6 @@
 import tkinter as tk
 from .frames.menu_frame import MenuFrame
 
-
 def _enforce_ratio(event: tk.Event):
     root = event.widget
     if getattr(root, "_ratio_lock", False):
@@ -28,3 +27,6 @@ def start(root: tk.Tk):
     root.minsize(1280, 720)
     root.bind("<Configure>", _enforce_ratio)
     MenuFrame(root).pack(fill="both", expand=True)
+def start(root: tk.Tk):
+    root.title("Liga Brasileira")
+    MenuFrame(root).pack(fill='both', expand=True)

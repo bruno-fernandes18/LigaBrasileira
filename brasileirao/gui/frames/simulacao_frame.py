@@ -1,6 +1,5 @@
 import tkinter as tk
 
-
 HEADER_FONT = ("Helvetica", 18, "bold")
 LIST_FONT = ("Helvetica", 12)
 BUTTON_FONT = ("Helvetica", 14)
@@ -49,6 +48,23 @@ class RodadaFrame(tk.Frame):
         tk.Button(btns, text="Simular", font=BUTTON_FONT, width=18).pack(side="left", padx=5)
         tk.Button(btns, text="Pular para Resultado", font=BUTTON_FONT, width=18).pack(side="left", padx=5)
         tk.Button(btns, text="Avançar", font=BUTTON_FONT, width=18, command=self.voltar_cb).pack(side="left", padx=5)
+        tk.Label(self, text="Classificação Série A").pack()
+        self.lista = tk.Listbox(self)
+        for i in range(1, 5):
+            self.lista.insert('end', f"Time {i} - {i*3} pts")
+        self.lista.pack(fill='both', expand=True)
+
+class RodadaFrame(tk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.criar_widgets()
+
+    def criar_widgets(self):
+        tk.Label(self, text="Jogos do Dia").pack()
+        self.lista = tk.Listbox(self)
+        for i in range(1, 6):
+            self.lista.insert('end', f"Time A {i} x Time B {i} - 0x0")
+        self.lista.pack(fill='both', expand=True)
 
 class SimulacaoFrame(tk.Frame):
     def __init__(self, master):
@@ -67,3 +83,6 @@ class SimulacaoFrame(tk.Frame):
         self.tab_frame.pack_forget()
         self.btn_proxima.pack_forget()
         self.rodada_frame.pack(fill="both", expand=True)
+        self.rodada_frame = RodadaFrame(self)
+        self.tab_frame.pack(side='left', fill='both', expand=True)
+        self.rodada_frame.pack(side='right', fill='both', expand=True)
