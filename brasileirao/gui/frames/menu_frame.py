@@ -1,7 +1,6 @@
 import tkinter as tk
 from .simulacao_frame import SimulacaoFrame
 
-
 HEADER_FONT = ("Helvetica", 24, "bold")
 BUTTON_FONT = ("Helvetica", 14)
 
@@ -30,6 +29,17 @@ class MenuFrame(tk.Frame):
             font=("Helvetica", 12),
             command=self.mostrar_login,
         ).pack(side="bottom", anchor="e", padx=10, pady=10)
+        tk.Label(self, text="Liga Brasileira", font=("Arial", 20)).pack(pady=10)
+        btn_sim = tk.Button(self, text="Iniciar Simulação", command=self.iniciar)
+        btn_manager = tk.Button(self, text="Jogar com Técnico")
+        btn_cfg = tk.Button(self, text="Configurações")
+        btn_sair = tk.Button(self, text="Sair", command=self.master.quit)
+        btn_login = tk.Button(self, text="Login/Registro", command=self.mostrar_login)
+        btn_sim.pack(pady=2)
+        btn_manager.pack(pady=2)
+        btn_cfg.pack(pady=2)
+        btn_sair.pack(pady=2)
+        btn_login.pack(side="bottom", anchor="se")
 
     def iniciar(self):
         self.pack_forget()
