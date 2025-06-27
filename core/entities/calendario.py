@@ -9,6 +9,7 @@ class Calendario:
     def __init__(self) -> None:
         self.partidas: list[Partida] = []
         self.rodada_atual = 1
+        self.data_inicio: date = date.today()
 
     def adicionar_partida(self, partida: Partida) -> None:
         """Adiciona partida mantendo espaçamento mínimo."""
