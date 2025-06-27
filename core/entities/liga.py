@@ -19,19 +19,8 @@ class Liga(Competicao):
         self.classificacao = self.times[:]
 
     def _aplicar_resultado(self, partida: Partida) -> None:
-        """Atualiza pontuação e saldo de gols dos times."""
-        casa = partida.time_casa
-        visitante = partida.time_visitante
-        casa.saldo_gols += partida.placar_casa - partida.placar_visitante
-        visitante.saldo_gols += partida.placar_visitante - partida.placar_casa
-
-        if partida.placar_casa > partida.placar_visitante:
-            casa.pontos += 3
-        elif partida.placar_casa < partida.placar_visitante:
-            visitante.pontos += 3
-        else:
-            casa.pontos += 1
-            visitante.pontos += 1
+        """Atualiza pontuação e saldo de gols usando a partida."""
+        partida.aplicar_resultado()
 
     def simular_rodada(self, rodada: int) -> None:
         """Simula as partidas de uma rodada e atualiza a classificação."""
