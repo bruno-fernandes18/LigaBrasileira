@@ -12,6 +12,7 @@ class Time:
         self.fundacao = fundacao
         self.cidade = cidade
         self.estadio = estadio
+        self.liga = None
         self.jogadores: List['Jogador'] = []
         self.tecnico = None
         self.factor_torcida = 10

@@ -20,6 +20,6 @@ class Calendario:
         """Retorna a próxima data livre a partir de ``data_inicio``."""
         data = data_inicio
         if self.partidas:
-            while any(abs((p.data - data).days) < 3 for p in self.partidas):
+            while any(abs(((p.data.date() if hasattr(p.data, 'date') else p.data) - data).days) < 3 for p in self.partidas):
                 data += timedelta(days=1)
         return data
