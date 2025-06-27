@@ -1,9 +1,15 @@
+"""Entidade ``Time`` representando um clube participante."""
+
 from __future__ import annotations
 from typing import List
 from ..enums.setor import Setor
 
 class Time:
-    def __init__(self, nome: str, apelido: str, fundacao: int, cidade: str, estadio: str):
+    """Estrutura com dados e métricas de um clube."""
+
+    def __init__(self, nome: str, apelido: str, fundacao: int, cidade: str, estadio: str) -> None:
+        """Constrói um time com informações básicas."""
+
         self.nome = nome
         self.apelido = apelido
         self.fundacao = fundacao
@@ -25,7 +31,8 @@ class Time:
         self.salarios: List[int] = []
         self.rivais = []
 
-    def calcular_medias(self):
+    def calcular_medias(self) -> None:
+        """Atualiza as médias de atributos do time com base nos jogadores."""
         if self.jogadores:
             self.media_ataque = sum(j.qualidade_ataque for j in self.jogadores) / len(self.jogadores)
             self.media_meio = sum(j.qualidade_meio_campo for j in self.jogadores) / len(self.jogadores)
