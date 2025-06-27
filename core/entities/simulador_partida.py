@@ -3,6 +3,7 @@
 import random
 from .partida import Partida
 from ..enums.fase_partida import FasePartida
+from ..systems.sistema_eventos import registrar_gol
 from .time import Time
 
 
@@ -116,3 +117,59 @@ class SimuladorPartida:
                 break
             defesa_goleiro(self, chute)
         self.partida.concluida = True
+
+    def _meio_campo(self) -> None:
+        self.subphase = 1
+        self.phase += 1
+        self.partida.fases.append(FasePartida.MEIO_CAMPO)
+        roll_casa = random.random() * self.modifier_casa
+        roll_visitante = random.random() * self.modifier_visitante
+        if roll_casa >= roll_visitante:
+            self.possession = self.partida.time_casa
+        else:
+            self.possession = self.partida.time_visitante
+
+    def _ataque(self) -> None:
+        self.subphase = 2
+        self.phase += 1
+        self.partida.fases.append(FasePartida.ATAQUE)
+        ataque = random.random() * (
+            self.modifier_casa if self.possession == self.partida.time_casa else self.modifier_visitante
+        )
+        defesa = random.random()
+        if ataque < defesa:
+            self.possession = (
+                self.partida.time_visitante
+                if self.possession == self.partida.time_casa
+                else self.partida.time_casa
+            )
+
+    def _gol(self) -> None:
+        self.subphase = 3
+        self.phase += 1
+        self.partida.fases.append(FasePartida.GOL)
+        chute = random.random() * (
+            self.modifier_casa if self.possession == self.partida.time_casa else self.modifier_visitante
+        )
+        defesa = random.random()
+        if chute > defesa:
+            if self.possession == self.partida.time_casa:
+                self.partida.placar_casa += 1
+                time = self.partida.time_casa
+            else:
+                self.partida.placar_visitante += 1
+                time = self.partida.time_visitante
+            if time.jogadores:
+                marcador = random.choice(time.jogadores)
+                assist = None
+                if len(time.jogadores) > 1:
+                    candidatos = [j for j in time.jogadores if j is not marcador]
+                    if candidatos:
+                        assist = random.choice(candidatos)
+                registrar_gol(marcador, assist)
+        else:
+            self.possession = (
+                self.partida.time_visitante
+                if self.possession == self.partida.time_casa
+                else self.partida.time_casa
+            )
