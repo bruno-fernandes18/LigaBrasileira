@@ -1,13 +1,21 @@
+"""Frame inicial do aplicativo."""
+
 import tkinter as tk
+from datetime import datetime
+
 from .simulacao_frame import SimulacaoFrame
+from brasileirao.core.entidades.competicao import Competicao
 
 
 HEADER_FONT = ("Helvetica", 24, "bold")
 BUTTON_FONT = ("Helvetica", 14)
 
 class MenuFrame(tk.Frame):
-    def __init__(self, master):
+    """Menu principal exibido ao iniciar a aplicação."""
+
+    def __init__(self, master: tk.Misc):
         super().__init__(master)
+        self.competicao = Competicao("Brasileirão", datetime.now().year)
         self.criar_widgets()
 
     def criar_widgets(self):
@@ -31,12 +39,19 @@ class MenuFrame(tk.Frame):
             command=self.mostrar_login,
         ).pack(side="bottom", anchor="e", padx=10, pady=10)
 
-    def iniciar(self):
+    def iniciar(self) -> None:
         """Mostrar o frame de simulação e ocultar o menu."""
+
         self.pack_forget()
-        SimulacaoFrame(self.master).pack(fill="both", expand=True)
+        SimulacaoFrame(
+            parent=self.master,
+            competicao=self.competicao,
+            temporada=self.competicao.temporada,
+        ).pack(fill="both", expand=True)
 
     def mostrar_login(self):
+        """Exibe diálogo simples de login."""
+
         popup = tk.Toplevel(self)
         popup.title("Login")
         tk.Label(popup, text="Usuário:").pack()
