@@ -12,10 +12,9 @@ def desenvolver_jogadores(jogadores: List[Jogador]):
 class PlayerDevelopmentEngine:
     """Motor de desenvolvimento de jogadores mais detalhado."""
 
-    DEVELOPMENT_CURVES = {
-        "early_peak": lambda age: max(0, 0.4 * (25 - abs(age - 22))),
-        "normal": lambda age: max(0, 0.3 * (28 - abs(age - 25))),
-        "late_bloomer": lambda age: max(0, 0.2 * (32 - abs(age - 28))),
+    CURVES = {
+        "precoce": lambda age: max(0, -0.8 * (age - 23) ** 2 + 90),
+        "normal": lambda age: 0.6 * (age - 18) + 60 if age < 28 else 60 - 0.9 * (age - 28),
     }
 
     def simulate_season_growth(self, player: Jogador):
@@ -25,7 +24,7 @@ class PlayerDevelopmentEngine:
             + 0.1 * self._random_events(player)
         )
 
-        curve = self.DEVELOPMENT_CURVES.get(player.development_profile, self.DEVELOPMENT_CURVES["normal"])
+        curve = self.CURVES.get(player.development_profile, self.CURVES["normal"])
         age_factor = curve(player.idade)
 
         for attr in ["qualidade_ataque", "qualidade_meio_campo", "qualidade_defesa"]:
