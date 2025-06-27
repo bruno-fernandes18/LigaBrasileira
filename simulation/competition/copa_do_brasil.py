@@ -5,8 +5,8 @@ from __future__ import annotations
 from datetime import timedelta
 from pathlib import Path
 
-from ...core.entities.copa import Copa
-from ...core.entities.partida import Partida
+from core.entities.copa import Copa
+from core.entities.partida import Partida
 
 
 class CopaDoBrasil(Copa):

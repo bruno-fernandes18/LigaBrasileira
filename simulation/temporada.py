@@ -47,6 +47,7 @@ class SimuladorTemporada:
             for t in comp.times:
                 if t not in self.times:
                     self.times.append(t)
+        self.resultados: dict[str, list[str]] = {}
 
     def executar_rodada(self) -> None:
         """Simula a rodada atual.
@@ -102,6 +103,55 @@ class SimuladorTemporada:
                     novo.time = comprador
                     comprador.jogadores.append(novo)
                     comprador.orcamento -= 1_000_000
+
+    def encerrar_temporada(self) -> None:
+        """Registra os resultados finais das competições."""
+        self.resultados.clear()
+        for comp in self.competicoes:
+            if isinstance(comp, Liga):
+                comp.classificacao.sort(
+                    key=lambda t: (t.pontos, t.saldo_gols), reverse=True
+                )
+            self.resultados[comp.nome] = [t.nome for t in getattr(comp, "classificacao", [])]
+
+    def iniciar_nova_temporada(self, qtd_movimentacao: int = 4) -> None:
+        """Avança o calendário promovendo e rebaixando equipes."""
+        self.encerrar_temporada()
+        try:
+            from .competition.liga_brasileira import LigaBrasileira
+            from .competition.liga_segunda_divisao import LigaSegundaDivisao
+        except Exception:  # pragma: no cover - fallback for optional imports
+            LigaBrasileira = LigaSegundaDivisao = None  # type: ignore
+
+        liga_a = next(
+            (c for c in self.competicoes if LigaBrasileira and isinstance(c, LigaBrasileira)),
+            None,
+        )
+        liga_b = next(
+            (c for c in self.competicoes if LigaSegundaDivisao and isinstance(c, LigaSegundaDivisao)),
+            None,
+        )
+        if liga_a and liga_b:
+            rebaixados = liga_a.classificacao[-qtd_movimentacao:]
+            promovidos = liga_b.classificacao[:qtd_movimentacao]
+            for t in rebaixados:
+                liga_a.times.remove(t)
+                liga_b.times.append(t)
+                t.liga = liga_b
+            for t in promovidos:
+                liga_b.times.remove(t)
+                liga_a.times.append(t)
+                t.liga = liga_a
+
+        self.times = []
+        for comp in self.competicoes:
+            comp.temporada += 1
+            comp.gerar_calendario()
+            for t in comp.times:
+                if t not in self.times:
+                    self.times.append(t)
+
+        self.rodada_atual = 1
 
 
 def main() -> None:

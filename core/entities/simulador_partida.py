@@ -1,175 +1,208 @@
-"""Simulador de partida com fases detalhadas."""
-
 from __future__ import annotations
 
-import random
+"""Simulação detalhada de partidas.
 
-from .partida import Partida
-from ..enums.fase_partida import FasePartida
-from ..enums.estilo_tatico import EstiloTatico
-from ..systems.narrador import narrar
-from ..systems.sistema_eventos import registrar_gol
-from .time import Time
+Regras básicas implementadas:
+- Até 0–20 fases, definidas dinamicamente por sorte e qualidade.
+- Sub‑fases: MEIO_CAMPO → (opcional) ATAQUE → (opcional) FINALIZAÇÃO.
+- Rolagens consideram atributos de qualidade, sorte e estilo tático.
+- Gols e assistências são registrados via sistema de eventos.
+- Narrador descreve cada acontecimento importante.
+"""
 
+from random import randint, random, choice
+from typing import Callable
+
+from core.enums.estilo_tatico import EstiloTatico
+from core.enums.fase_partida import FasePartida
+from core.systems.narrador import narrar
+from core.systems.sistema_eventos import registrar_gol
+from core.entities.partida import Partida
+from core.entities.time import Time
+
+# ---------------------------------------------------------------------------
+# Constantes
+# ---------------------------------------------------------------------------
 MAX_PHASES = 20
-MIN_ROLL = 0
-MAX_ROLL = 40
+MIN_ROLL, MAX_ROLL = 0, 40
+MARGEM_MEIO = 6  # Diferença necessária para progredir ataque
+MARGEM_ATAQUE = 8  # Diferença necessária p/ chance clara de gol
+
+# ---------------------------------------------------------------------------
+# Funções utilitárias
+# ---------------------------------------------------------------------------
+
+def calcula_numero_de_fases(time_casa: Time, time_visitante: Time) -> int:
+    """Define o número de fases (0–20) usando sorte & qualidade."""
+    base = randint(0, MAX_PHASES)
+    dif_sorte = abs(time_casa.sorte - time_visitante.sorte)
+    if dif_sorte < 5:
+        return base
+
+    lucky = time_casa if time_casa.sorte > time_visitante.sorte else time_visitante
+    unlucky = time_visitante if lucky is time_casa else time_casa
+    dif_qual = int(abs(lucky.qualidade_geral - unlucky.qualidade_geral))
+
+    if lucky.qualidade_geral < unlucky.qualidade_geral:
+        base -= min(dif_qual, lucky.sorte)
+    else:
+        base += dif_qual
+    return max(1, min(MAX_PHASES, base))
 
 
-def calcula_numero_de_fases() -> int:
-    """Retorna o limite de fases de uma partida simples."""
-    return MAX_PHASES
+def _rolar(
+    time: Time,
+    proposito: str,  # "meio", "ataque" ou "defesa"
+    estilo_bonus: dict[str, EstiloTatico | None],
+) -> int:
+    """Rola d20 + atributos + sorte + bônus de estilo."""
+    sorte_bonus = time.sorte // 4
+    valor_base = randint(MIN_ROLL, 20)
+
+    # Qualidades básicas
+    if proposito == "meio":
+        valor_base += int(time.media_meio + time.media_ataque * 0.5)
+    elif proposito == "ataque":
+        valor_base += int(time.media_ataque + time.media_meio * 0.5)
+    else:  # defesa
+        valor_base += int(time.media_defesa + time.media_meio * 0.5)
+
+    # Estilo tático do técnico
+    tecnico = time.tecnico
+    if tecnico:
+        if proposito == "meio" and tecnico.estilo_tatico == EstiloTatico.POSSE_BOLA:
+            valor_base = max(valor_base, randint(MIN_ROLL, 20) + valor_base)
+        if proposito == "ataque" and tecnico.estilo_tatico == EstiloTatico.OFENSIVO:
+            valor_base = max(valor_base, randint(MIN_ROLL, 20) + valor_base)
+        if proposito == "defesa" and tecnico.estilo_tatico == EstiloTatico.DEFENSIVO:
+            valor_base = max(valor_base, randint(MIN_ROLL, 20) + valor_base)
+
+    total = valor_base + sorte_bonus
+    # Sorte 20 → reroll vantagem
+    if time.sorte == 20:
+        total = max(total, randint(MIN_ROLL, 20) + sorte_bonus)
+    return max(MIN_ROLL, min(MAX_ROLL, total))
 
 
-def _registrar_gol(time: Time) -> None:
-    """Soma um gol a um jogador aleatorio."""
+def _marcar_gol(time: Time) -> None:
+    """Sorteia artilheiro e (talvez) assistente, registra estatísticas."""
     if not time.jogadores:
         return
-    jogador = random.choice(time.jogadores)
-    registrar_gol(jogador)
+    atacantes = sorted(time.jogadores, key=lambda j: j.qualidade_ataque, reverse=True)[:3]
+    goleador = choice(atacantes or time.jogadores)
 
+    assist = None
+    if random() < 0.5:  # 50 % chance de assistência
+        meias = sorted(time.jogadores, key=lambda j: j.qualidade_meio_campo, reverse=True)[:3]
+        assist = choice([m for m in meias if m is not goleador] or [goleador])
+
+    registrar_gol(goleador, assist)
+
+# ---------------------------------------------------------------------------
+# Simulador
+# ---------------------------------------------------------------------------
 
 class SimuladorPartida:
-    """Executa uma simulacao simplificada de partida."""
+    """Executa simulação detalhada de uma partida."""
 
     def __init__(self, partida: Partida) -> None:
         self.partida = partida
-        self.phase = 0
-        self.subphase = 0
-        self.possession = random.choice([partida.time_casa, partida.time_visitante])
+        self.fases_max = calcula_numero_de_fases(partida.time_casa, partida.time_visitante)
+        self.fase_atual = 0
+        self.posse: Time = choice([partida.time_casa, partida.time_visitante])
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
+    # ----------------------------------------
+    # Ciclo principal
+    # ----------------------------------------
     def simular(self) -> None:
-        """Executa ate 20 fases alternando subfases."""
-        """Executa até 20 fases alternando meio-campo, ataque e finalizações."""
         narrar(
-            f"Inicio da partida: {self.partida.time_casa.nome} x {self.partida.time_visitante.nome}",
+            f"Início: {self.partida.time_casa.nome} x {self.partida.time_visitante.nome}",
             self.partida,
         )
-        while self.phase < MAX_PHASES:
-            self._meio_campo()
-            if self.phase >= MAX_PHASES:
+
+        while self.fase_atual < self.fases_max:
+            self._fase_meio_campo()
+            if self.fase_atual >= self.fases_max:
                 break
-            if not self._ataque():
+            if not self._fase_ataque():  # Defesa anulou → nova fase
                 continue
-            if self.phase >= MAX_PHASES:
+            if self.fase_atual >= self.fases_max:
                 break
-            chute = self._gol()
-            if self.phase >= MAX_PHASES:
-                break
-            self._defesa(chute)
-        limite = calcula_numero_de_fases()
-        while self.phase < limite:
-            rolar_meio_campo(self)
-            if self.phase >= limite:
-                break
-            if rolar_ataque(self):
-                if self.phase >= limite:
-                    break
-                chute = chutar_gol(self)
-                if self.phase >= limite:
-                    break
-                defesa_goleiro(self, chute)
+            self._fase_finalizacao()
+
+        narrar(
+            f"Fim: {self.partida.time_casa.nome} {self.partida.placar_casa} x {self.partida.placar_visitante} {self.partida.time_visitante.nome}",
+            self.partida,
+        )
         self.partida.concluida = True
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-    def _roll(self, team: Time, purpose: str) -> int:
-        mod = team.sorte // 4
-        tecnico = team.tecnico
-        if tecnico:
-            estilo = tecnico.estilo_tatico
-            if purpose == "meio" and estilo == EstiloTatico.POSSE_BOLA:
-                mod += 3
-            if purpose == "ataque":
-                if estilo == EstiloTatico.OFENSIVO:
-                    mod += 5
-                if estilo == EstiloTatico.CONTRA_ATAQUE:
-                    mod += 3
-            if purpose == "defesa" and estilo == EstiloTatico.DEFENSIVO:
-                mod += 5
-        roll = random.randint(MIN_ROLL, MAX_ROLL) + mod
-        roll = max(MIN_ROLL, min(MAX_ROLL, roll))
-        if team.sorte > 15:
-            extra = random.randint(MIN_ROLL, MAX_ROLL) + mod
-            extra = max(MIN_ROLL, min(MAX_ROLL, extra))
-            if extra > roll:
-                roll = extra
-        return roll
-
-    def _meio_campo(self) -> None:
-        self.subphase = 1
-        self.phase += 1
+    # ----------------------------------------
+    # Fases internas
+    # ----------------------------------------
+    def _fase_meio_campo(self) -> None:
+        self.fase_atual += 1
         self.partida.fases.append(FasePartida.MEIO_CAMPO)
-        casa = self.partida.time_casa
-        visitante = self.partida.time_visitante
-        roll_casa = self._roll(casa, "meio")
-        roll_visitante = self._roll(visitante, "meio")
-        self.possession = casa if roll_casa >= roll_visitante else visitante
 
-    def _ataque(self) -> bool:
-        self.subphase = 2
-        self.phase += 1
+        adversario = (
+            self.partida.time_visitante
+            if self.posse is self.partida.time_casa
+            else self.partida.time_casa
+        )
+
+        r1 = _rolar(self.posse, "meio", {})
+        r2 = _rolar(adversario, "meio", {})
+
+        if abs(r1 - r2) < MARGEM_MEIO:
+            narrar("Disputa acirrada no meio‑campo, ninguém progride.", self.partida)
+            return  # meio‑campo continuará na próxima fase
+
+        if r2 > r1:
+            self.posse = adversario
+        narrar(f"{self.posse.nome} domina o meio‑campo.", self.partida)
+
+    def _fase_ataque(self) -> bool:
+        self.fase_atual += 1
         self.partida.fases.append(FasePartida.ATAQUE)
-        atacante = self.possession
-        defensor = self.partida.time_visitante if atacante == self.partida.time_casa else self.partida.time_casa
-        ataque = self._roll(atacante, "ataque")
-        defesa = self._roll(defensor, "defesa")
-        if ataque <= defesa or ataque == MIN_ROLL:
-            self.possession = defensor
+
+        defensor = (
+            self.partida.time_visitante
+            if self.posse is self.partida.time_casa
+            else self.partida.time_casa
+        )
+
+        r_atk = _rolar(self.posse, "ataque", {})
+        r_def = _rolar(defensor, "defesa", {})
+
+        if r_atk - r_def < MARGEM_ATAQUE:
+            narrar("Defesa intercepta! Posse trocada.", self.partida)
+            self.posse = defensor
             return False
+
+        narrar("Chance clara de gol!", self.partida)
         return True
 
-    def _gol(self) -> int:
-        self.subphase = 3
-        self.phase += 1
+    def _fase_finalizacao(self) -> None:
+        self.fase_atual += 1
         self.partida.fases.append(FasePartida.GOL)
-        return self._roll(self.possession, "ataque")
+        defensor = (
+            self.partida.time_visitante
+            if self.posse is self.partida.time_casa
+            else self.partida.time_casa
+        )
 
-    def _defesa(self, chute: int) -> None:
-        self.subphase = 4
-        self.phase += 1
-        self.partida.fases.append(FasePartida.DEFESA)
-        defensor = self.partida.time_visitante if self.possession == self.partida.time_casa else self.partida.time_casa
-        defesa = self._roll(defensor, "defesa")
-        if chute > defesa and chute > MIN_ROLL:
-            if self.possession == self.partida.time_casa:
+        chute = _rolar(self.posse, "ataque", {})
+        defesa = _rolar(defensor, "defesa", {}) + 8  # bônus fixo goleiro
+
+        if chute > defesa:
+            # Gol!
+            if self.posse is self.partida.time_casa:
                 self.partida.placar_casa += 1
-                _registrar_gol(self.partida.time_casa)
             else:
                 self.partida.placar_visitante += 1
-                _registrar_gol(self.partida.time_visitante)
+            _marcar_gol(self.posse)
+            narrar(f"GOL do {self.posse.nome}!", self.partida)
         else:
-            self.possession = defensor
-            else:
-                self.partida.placar_visitante += 1
-            time = self.possession
-            if time.jogadores:
-                marcador = random.choice(time.jogadores)
-                registrar_gol(marcador)
-                assist = None
-                if len(time.jogadores) > 1:
-                    candidatos = [j for j in time.jogadores if j is not marcador]
-                    if candidatos:
-                        assist = random.choice(candidatos)
-                registrar_gol(marcador, assist)
-            narrar(f"GOL do {time.nome}!", self.partida)
-        else:
-            self.possession = (
-                self.partida.time_visitante
-                if self.possession == self.partida.time_casa
-                else self.partida.time_casa
-            )
-        self._verificar_cartoes()
+            narrar("Defesa espetacular!", self.partida)
 
-    def _verificar_cartoes(self) -> None:
-        """Sorteia aplicação de cartões aleatoriamente."""
-        chance = random.random()
-        if chance < 0.02:
-            narrar(f"Cartão amarelo para {self.possession.nome}", self.partida)
-        elif chance < 0.025:
-            narrar(f"Cartão vermelho para {self.possession.nome}", self.partida)
-
+        # Após finalização, posse do adversário
+        self.posse = defensor
